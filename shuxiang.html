@@ -1,0 +1,250 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      Intro to MapView - Create a 2D map | Sample | ArcGIS API for JavaScript
+      4.23
+    </title>
+
+    <style>
+            html,
+            body,
+            #viewDiv {
+              padding: 0;
+              margin: 0;
+              height: 98%;
+              width: 94%;
+            }
+           /* #basemapGalleryDiv{
+              right:5px;
+              top:5px;
+            }*/
+            #basemapGalleryDiv {
+        position: absolute;
+        top:38px;
+        left: 84%;
+        height: 93%;
+        width: 240px;
+        z-index:1;
+      }
+      //body
+             body{
+                position:relative;
+            }
+
+            .header
+       {
+         /*background-color:#b0c4de;
+         font-size:30px;
+         height: 1.5%;*/
+         box-sizing: border-box;
+         height: 45px;
+         width: 113%;
+         background-color:#4cffdc;
+         font-size: 30px;
+         color: white;
+         padding-left: 20px;
+       }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.23/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/BasemapGallery",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Search",
+        "esri/widgets/LayerList",
+        "esri/widgets/Home",
+        "esri/widgets/Measurement",
+        "esri/widgets/Expand",
+        "esri/tasks/FindTask",
+        "esri/widgets/Editor",
+        "esri/popup/content/AttachmentsContent",
+        "esri/widgets/Print",
+        "esri/widgets/Track",
+        "esri/popup/content/TextContent",
+        "esri/widgets/AreaMeasurement2D",
+        "esri/widgets/Locate"
+      ], (
+        Map,
+        MapView,
+        FeatureLayer,
+        BasemapGallery,
+        Legend,
+        ScaleBar,
+        Search,
+        LayerList,
+        Home,
+        Measurement,
+        Expand,
+        FindTask,
+        Editor,
+        Print,
+        Track,
+        AttachmentsContent,
+        TextContent,
+        AreaMeasurement2D,
+        Locate
+      ) => {
+        let features, editor;
+        //图层
+        const layer = new FeatureLayer({
+          // URL to the service
+          url: "https://www.geosceneonline.cn/server/rest/services/Hosted/%E4%BC%91%E9%97%B2%E5%A8%B1%E4%B9%90%E2%80%94%E2%80%94%E6%9F%A5%E7%9C%8B/FeatureServer",
+          title: "娱乐设施"
+        });
+
+        //map
+        const map = new Map({ basemap: "streets-navigation-vector" });
+        map.layers.add(layer);
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 11,
+          center: [119.27, 26.05] // longitude, latitude
+        });
+
+        //图层列表
+        let layerList = new LayerList({
+          view: view
+        });
+
+        const llExpand = new Expand({
+          view: view,
+          content: layerList,
+          expanded: false
+        });
+        view.ui.add(llExpand, "top-left");
+
+        //图例
+        let legend = new Legend(
+          {
+            view: view,
+            style: "card",
+            layerInfos: [{ layer: layer, title: "事件类型" }]
+          },
+          "legend"
+        );
+        const lgExpand = new Expand({
+          view: view,
+          content: legend,
+          expanded: false
+        });
+        view.ui.add(lgExpand, "top-left");
+
+        //比例尺
+        let scaleBar = new ScaleBar({
+          view: view,
+          style: "ruler",
+          unit: "metric"
+        });
+        //Add widget to the bottom left corner of the view
+        view.ui.add(scaleBar, {
+          position: "bottom-left"
+        });
+
+        //查询
+        const searchWidget = new Search({
+          view: view
+        });
+        // Adds the search widget below other elements in
+        // the top left corner of the view
+        view.ui.add(searchWidget, {
+          position: "top-left",
+          index: 0
+        });
+
+        //home键
+        let homeWidget = new Home({
+          view: view
+        });
+        // adds the home widget to the top left corner of the MapView
+        view.ui.add(homeWidget, "top-right");
+
+        //底图库
+        const basemapGallery = new BasemapGallery(
+          {
+            view: view,
+            container:basemapGalleryDiv
+          }
+          //, "basemapGallery"
+        );
+       /* basemapGallery.startup;
+ view.ui.add(basemapGallery, "top-right");*/
+       /* const bgExpand = new Expand({
+          view: view,
+          content: basemapGallery,
+          expanded: false
+        });
+
+        view.ui.add(bgExpand, "top-right");*/
+
+        //测量
+        const measurement = new Measurement({
+          view: view,
+          activeTool: "distance"
+        });
+        const measureExpand = new Expand({
+          view: view,
+          content: measurement,
+          expanded: false
+        });
+        view.ui.add(measureExpand, "top-right");
+
+        //面积测量
+        const measurementWidget = new AreaMeasurement2D({ view: view });
+        const am2DExpand = new Expand({
+          view: view,
+          content: measurementWidget,
+          expanded: false
+        });
+        view.ui.add(am2DExpand, "top-right");
+
+        //追踪
+        let track = new Track({
+          view: view
+        });
+        const trExpand = new Expand({
+          view: view,
+          content: track,
+          expanded: false
+        });
+        view.ui.add(trExpand, "top-right");
+
+        //打印
+        const print = new Print({
+          view: view,
+          // specify your own print service
+          printServiceUrl:
+            "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+        });
+
+        //定位
+        const locateWidget = new Locate({ view: view });
+        view.ui.add(locateWidget, "top-right");
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <div class="header"> 福州市娱乐地点分布情况</div>
+    <div id="basemapGalleryDiv"></div>
+    
+    <div id="viewDiv"></div>
+  </body>
+</html>
